@@ -11,7 +11,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -201,17 +203,27 @@ public class BoardTestSuite {
 
 
      //suma dni realizacji
-       long totalDays = project.getTaskLists().stream()
+       double totalDays = project.getTaskLists().stream()
               .filter(inProgress::contains)
                 .flatMap(tl -> tl.getTasks().stream())
-                .map(t -> t.getCreated().until(t.getDeadline(), ChronoUnit.DAYS))
-                .reduce(0,(sum,current) -> sum= sum.add(current));
+                .mapToLong(t -> t.getCreated().until(t.getDeadline(), ChronoUnit.DAYS))
+                .average().getAsDouble();
 
-        double mean = (double) totalDays / longTasks;
+
+        double totalDaysWithReduce = project.getTaskLists().stream()
+                .filter(inProgress::contains)
+                .flatMap(t -> t.getTasks().stream())
+                .mapToLong(tl -> tl.getCreated().until(tl.getDeadline(),ChronoUnit.DAYS))
+                .reduce(0, (sum, current) -> sum = sum+(current));
+
+
+        double mean =  totalDays ;
+        double mean2 = totalDaysWithReduce / longTasks;
 
         //THEN
         Assert.assertEquals(3,longTasks);
-        Assert.assertEquals(7,mean,0.01);
+        Assert.assertEquals(18.33333333,mean,0.0001);
+        Assert.assertEquals(18.33333333,mean2,0.0001);
 
 
 
